@@ -8,13 +8,13 @@ const config = {
     protectedUsers: {
         "141919810": {
             muteTime: 5,//设置禁言的时间，单位为秒
-            message: "非紧急问题请逐层反馈，联系城镇内反馈员提交", //发送的消息
+            message: "这是一条可爱的消息喵~", //发送的消息
             maxAtCount: 3, //最大艾特次数
             timeWindow: 60 //时间窗口，单位为秒
         },
         "114514119": {
             muteTime: 10,
-            message: "带内容艾特，欢迎反馈bug啥的",
+            message: "看不到我，看不到我，看不到我~",
             maxAtCount: 5,
             timeWindow: 120
         }
