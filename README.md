@@ -5,7 +5,7 @@
 
 ## 目录
 
-[艾特禁言V0.1](https://github.com/Dnyo666/Qxml-Yunzai-js?tab=readme-ov-file#%E8%87%AA%E5%8A%A8%E5%A4%84%E7%90%86%E8%BF%9B%E7%BE%A4%E4%BA%8B%E4%BB%B6v29js)
+[艾特禁言V0.1](https://github.com/A1Panda/Yunzai-plugins?tab=readme-ov-file#%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80v01js)
 
 
 ### #艾特禁言V0.1.js
@@ -15,12 +15,25 @@
 ##### Github
 
 ```
-curl -o "./plugins/example/自动处理进群事件v2.9.js" "https://raw.githubusercontent.com/Dnyo666/Qxml-Yunzai-js/main/js/自动处理进群事件v2.9.js"
+curl -o "./plugins/example/艾特禁言V0.1.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/refs/heads/main/%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80V0.1.js"
 ```
 
 #### 简介
 
-用于多个群管理多个答案自动判断进群，以及是否开启等级限制
+
+#### 功能
+
+- **防止特定用户被频繁艾特**：插件可以配置特定用户，当这些用户被艾特超过一定次数时，艾特者会被禁言。
+- **自定义配置**：可以为不同的用户设置不同的禁言时间、提示消息、最大艾特次数和时间窗口。
+- **默认配置**：对于未在特定配置中的用户，使用默认的禁言配置。
+- **主人豁免**：配置了主人的QQ号列表，主人艾特不会触发禁言。
+- **机器人自艾特豁免**：机器人自己艾特自己不会触发禁言。
+
+#### 亮点
+
+- **灵活的配置**：可以为不同的用户设置不同的禁言策略，满足不同场景的需求。
+- **详细的提示信息**：在禁言前会发送自定义的提示消息，告知艾特者禁言原因。
+- **时间窗口管理**：通过时间窗口管理艾特历史记录，确保禁言策略的合理性。  
 
 <!-- #### 效果图
 
