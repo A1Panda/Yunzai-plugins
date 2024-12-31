@@ -72,6 +72,12 @@ export class example extends plugin {
                     return;
                 }
                 
+                // 检查机器人是否是管理员
+                if (!e.group.is_admin && !e.group.is_owner) {
+                    // 如果机器人不是管理员，则不执行后续操作
+                    return;
+                }
+                
                 const now = Date.now();
                 // 过滤掉超过时间窗口的艾特记录
                 const history = atHistory[e.sender.user_id] || [];
