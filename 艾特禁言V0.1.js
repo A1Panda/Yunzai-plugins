@@ -21,7 +21,7 @@ const config = {
     default: {
         muteTime: 600,
         message: "安静一会吧",
-        maxAtCount: 3,
+        maxAtCount: 20,
         timeWindow: 60
     }
 };
