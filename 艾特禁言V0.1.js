@@ -79,7 +79,7 @@ export class example extends plugin {
                 // 添加当前艾特记录
                 atHistory[e.sender.user_id].push(now);
                 
-                // 打印调试信息
+                // 打印调试信息 
                 //logger.info(`用户 ${e.sender.user_id} 的艾特历史:`, atHistory[e.sender.user_id]);
                 
                 // 检查艾特次数是否超过限制
