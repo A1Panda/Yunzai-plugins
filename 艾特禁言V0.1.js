@@ -1,37 +1,31 @@
 // 配置信息
-const config = {
-    // 主人QQ号列表
-    masterQQ: ["114514119", "141919810"],
-    // 机器人自己的QQ号
-    botQQ: "114514119",
-    // 不能艾特的QQ号配置
-    protectedUsers: {
-        "141919810": {
-            muteTime: 5,//设置禁言的时间，单位为秒
-            message: "这是一条可爱的消息喵~", //发送的消息
-            maxAtCount: 3, //最大艾特次数
-            timeWindow: 60 //时间窗口，单位为秒
-        },
-        "114514119": {
-            muteTime: 10,
-            message: "看不到我，看不到我，看不到我~",
-            maxAtCount: 5,
-            timeWindow: 120
-        }
+const masterQQ = ["3121280556", "141919810"];
+const botQQ = "2783939194";
+const protectedUsers = {
+    "3121280556": {
+        muteTime: 5, // 设置禁言的时间，单位为秒
+        message: "这是一条可爱的消息喵~", // 发送的消息
+        maxAtCount: 3, // 最大艾特次数
+        timeWindow: 60 // 时间窗口，单位为秒
     },
-    // 默认配置
-    default: {
-        muteTime: 600,
-        message: "安静一会吧",
-        maxAtCount: 3,
-        timeWindow: 60
+    "114514119": {
+        muteTime: 10,
+        message: "看不到我，看不到我，看不到我~",
+        maxAtCount: 5,
+        timeWindow: 120
     }
+};
+const defaultConfig = {
+    muteTime: 600,
+    message: "安静一会吧",
+    maxAtCount: 10, //防止误触发
+    timeWindow: 1  //防止误触发
 };
 
 import plugin from "../../lib/plugins/plugin.js";
 
 // 记录每个用户的艾特历史
-const atHistory = {};
+const atHistory = new Map();
 
 export class example extends plugin {
     constructor() {
@@ -50,59 +44,34 @@ export class example extends plugin {
     }
 
     async checkAt(e) {
-        if (!e.group) return;
-        
-        // 检查消息中是否包含at
-        const atList = e.message.filter(msg => msg.type === 'at');
-        if (!atList.length) return;
-        
-        // 检查被at的人是否在配置列表中
-        for (let at of atList) {
-            const targetQQ = at.qq;
-            const userConfig = config.protectedUsers[targetQQ] || config.default;
-            
-            if (userConfig) {
-                // 检查是否是主人在艾特
-                if (config.masterQQ.includes(String(e.sender.user_id))) {
-                    return;
-                }
-                
-                // 检查是否是机器人自己在艾特自己
-                if (e.sender.user_id == config.botQQ && targetQQ == config.botQQ) {
-                    return;
-                }
-                
-                const now = Date.now();
-                // 过滤掉超过时间窗口的艾特记录
-                const history = atHistory[e.sender.user_id] || [];
-                atHistory[e.sender.user_id] = history.filter(timestamp => now - timestamp < userConfig.timeWindow * 1000);
-                // 添加当前艾特记录
-                atHistory[e.sender.user_id].push(now);
-                
-                // 打印调试信息
-                //logger.info(`用户 ${e.sender.user_id} 的艾特历史:`, atHistory[e.sender.user_id]);
-                
-                // 检查艾特次数是否超过限制
-                if (atHistory[e.sender.user_id].length >= userConfig.maxAtCount) {
-                    const muteTime = userConfig.muteTime;
-                    const message = userConfig.message;
-                    
-                    try {
-                        // 禁言发送者
-                        await e.group.muteMember(e.sender.user_id, muteTime);
-                        
-                        // 发送带有at的消息
-                        await e.reply([
-                            segment.at(e.sender.user_id),
-                            " ",
-                            message
-                        ]);
-                    } catch (err) {
-                        logger.error(`禁言失败: ${err}`);
-                        await e.reply("操作失败，可能是权限不足");
-                    }
-                    return true;
-                }
+
+
+        // 检查消息中是否有艾特特定用户
+        const atUsers = e.message.filter(msg => msg.type === 'at').map(msg => msg.qq);
+        for (const user of atUsers) {
+            const config = protectedUsers[user] || defaultConfig;
+            const now = Date.now();
+            if (!atHistory.has(user)) {
+                atHistory.set(user, []);
+            }
+            const history = atHistory.get(user);
+            history.push(now);
+
+            // 移除时间窗口之外的记录
+            while (history.length && now - history[0] > config.timeWindow * 1000) {
+                history.shift();
+            }
+
+            // 打印调试信息
+            logger.info(`用户 ${user} 的艾特历史:`, atHistory.get(user));
+
+            if (history.length >= config.maxAtCount) {
+                // 禁言操作
+                await e.group.muteMember(e.sender.user_id, config.muteTime);
+                // 发送消息
+                await e.reply(config.message);
+                // 清空历史记录
+                atHistory.set(user, []);
             }
         }
     }
