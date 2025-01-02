@@ -11,14 +11,15 @@ import fs from 'fs';
  * 禁止商用、倒卖等获利行为
  */
 
+// 默认配置
 const defaultConfig = {
     '511802473': {
-        wenti: `群主女装过吗`,
-        ans: [`有`, `没有`],
-        BlackList: ["1516335938", "123123123"],
-        exactMatch: false,
-        enableLevelCheck: false,
-        minLevel: 25
+        wenti: `群主女装过吗`, //问题
+        ans: [`有`, `没有`], //答案
+        BlackList: ["1516335938", "123123123"], //黑名单QQ
+        exactMatch: false, //是否精确匹配
+        enableLevelCheck: false, //是否启用等级检查
+        minLevel: 25 //最低等级
     },
     '231231412': {
         wenti: `这是一个问题吗？`,
@@ -90,6 +91,7 @@ if (!global.configFileWatcher) {
     });
 }
 
+// 处理加群申请的类
 export class GroupRequestHandler extends plugin {
     constructor() {
         super({
@@ -106,6 +108,7 @@ export class GroupRequestHandler extends plugin {
             const msg = [`收到加群事件：\n问题：${groupConfig.wenti}\n用户：${e.user_id}\n留言：${e.comment}`];
             Bot.pickGroup(`${e.group_id}`).sendMsg(msg);
 
+            // 检查黑名单
             if (groupConfig.BlackList.includes(`${e.user_id}`)) {
                 Bot.pickGroup(`${e.group_id}`).sendMsg(`黑名单用户，拒绝申请`);
                 e.approve(false);
@@ -113,6 +116,7 @@ export class GroupRequestHandler extends plugin {
             }
 
             try {
+                // 等级检查
                 if (groupConfig.enableLevelCheck) {
                     const response = await fetch(`https://apis.kit9.cn/api/qq_material/api.php?qq=${e.user_id}`);
                     const data = await response.json();
@@ -129,6 +133,7 @@ export class GroupRequestHandler extends plugin {
                     }
                 }
 
+                // 答案检查
                 const userAnswer = e.comment?.trim();
                 if (!userAnswer) {
                     Bot.pickGroup(`${e.group_id}`).sendMsg(`未检测到答案格式，请重新申请！`);
@@ -155,6 +160,7 @@ export class GroupRequestHandler extends plugin {
     }
 }
 
+// 处理拉黑和拉白的类
 export class GroupJoinHandler extends plugin {
     constructor() {
         super({
