@@ -5,7 +5,8 @@
 
 ## 目录
 
-[艾特禁言V0.1](https://github.com/A1Panda/Yunzai-plugins?tab=readme-ov-file#%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80v01js)
+[艾特禁言V0.1](https://github.com/A1Panda/Yunzai-plugins?tab=readme-ov-file#%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80v01js)  
+[自动处理进群事件V3.0](https://github.com/A1Panda/Yunzai-plugins?tab=readme-ov-file#%E8%87%AA%E5%8A%A8%E5%A4%84%E7%90%86%E8%BF%9B%E7%BE%A4%E4%BA%8B%E4%BB%B6v30js)
 
 
 ### #艾特禁言V0.1.js
