@@ -13,10 +13,10 @@ import fs from 'fs';
 
 // 默认配置
 const defaultConfig = {
-    '511802473': {
-        wenti: `群主女装过吗`, //问题
-        ans: [`有`, `没有`], //答案
-        BlackList: ["1516335938", "123123123"], //黑名单QQ
+    '511802463': {
+        wenti: `群主有没有女装`, //问题
+        ans: [`有`, `没`], //答案
+        BlackList: ["1516335938", "12312123"], //黑名单QQ 如果想配置这个 必须在外置配置文件中配置 或者使用命令配置
         exactMatch: false, //是否精确匹配
         enableLevelCheck: false, //是否启用等级检查
         minLevel: 25 //最低等级
@@ -56,9 +56,17 @@ if (!fs.existsSync(configFilePath)) {
         existingConfig = defaultConfig;
     }
 
-    // 更新配置文件中的数据
+    // 更新配置文件中的数据，除了 BlackList 以外的所有配置只要变化就要修改外置配置文件
     for (const groupId in defaultConfig) {
-        existingConfig[groupId] = { ...defaultConfig[groupId], ...existingConfig[groupId] };
+        if (!existingConfig[groupId]) {
+            existingConfig[groupId] = defaultConfig[groupId];
+        } else {
+            for (const key in defaultConfig[groupId]) {
+                if (key !== 'BlackList' && existingConfig[groupId][key] !== defaultConfig[groupId][key]) {
+                    existingConfig[groupId][key] = defaultConfig[groupId][key];
+                }
+            }
+        }
     }
 
     // 写回更新后的配置文件
