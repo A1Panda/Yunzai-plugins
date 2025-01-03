@@ -49,19 +49,19 @@ export class example extends plugin {
     // 检查消息中是否有艾特特定用户
     async checkAt(e) {
         if (!e.group) {
-            logger.info(`不是群消息`)
+            //logger.info(`不是群消息`)
             return; // 如果不是群消息，返回
         } 
 
         // 检查机器人是否是群主或管理员
         if (!e.group.is_owner && !e.group.is_admin) {
-            logger.info(`机器人没有管理员或群主权限`)
+            //logger.info(`机器人没有管理员或群主权限`)
             return; // 如果机器人没有管理员或群主权限，返回
         }
 
         const atList = e.message.filter(msg => msg.type === 'at'); // 过滤出艾特消息
         if (!atList.length) {
-            logger.info(`没有艾特消息`)
+            //logger.info(`没有艾特消息`)
             return; // 如果没有艾特消息，返回
         } 
 
@@ -70,7 +70,7 @@ export class example extends plugin {
             const userConfig = config.protectedUsers[targetQQ] || config.default; // 获取用户配置
 
             if (this.isExempt(e, targetQQ)) {
-                logger.info(`豁免禁言`)
+                //logger.info(`豁免禁言`)
                 return; // 检查是否豁免
             } 
 
