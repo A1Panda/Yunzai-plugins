@@ -35,7 +35,7 @@ export class checkAt extends plugin {
             name: "禁止艾特插件", // 插件名称
             dsc: "艾特特定用户会被禁言", // 插件描述
             event: "message", // 监听的事件类型
-            priority: 9999999, // 插件优先级
+            priority: 9999, // 插件优先级
             rule: [
                 {
                     reg: ".*", // 正则表达式匹配所有消息
