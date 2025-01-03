@@ -21,6 +21,9 @@ curl -o "./plugins/example/艾特禁言V0.1.js" "https://raw.githubusercontent.c
 
 #### 简介
 
+    原作者：浅巷墨黎   
+    重构者：A1_Panda
+
 #### 版本
 
 - **V0.1** 重构
