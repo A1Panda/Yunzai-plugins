@@ -5,11 +5,11 @@
 
 ## 目录
 
-[艾特禁言V0.1](https://github.com/A1Panda/Yunzai-plugins?tab=readme-ov-file#%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80v01js)  
-[自动处理进群事件V3.0](https://github.com/A1Panda/Yunzai-plugins?tab=readme-ov-file#%E8%87%AA%E5%8A%A8%E5%A4%84%E7%90%86%E8%BF%9B%E7%BE%A4%E4%BA%8B%E4%BB%B6v30js)
+[艾特禁言](https://github.com/A1Panda/Yunzai-plugins/blob/main/%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80V0.2.js)  
+[自动处理进群事件](https://github.com/A1Panda/Yunzai-plugins?tab=readme-ov-file#%E8%87%AA%E5%8A%A8%E5%A4%84%E7%90%86%E8%BF%9B%E7%BE%A4%E4%BA%8B%E4%BB%B6v30js)
 
 
-### #艾特禁言V0.1.js
+### #艾特禁言V0.2.js
 
 #### 安装
 
@@ -21,6 +21,10 @@ curl -o "./plugins/example/艾特禁言V0.1.js" "https://raw.githubusercontent.c
 
 #### 简介
 
+#### 版本
+
+- **V0.1** 重构
+- **V0.2** 修复BUG 1.机器人不是群主或管理员也会触发 2.修复非管理员或群主用户无法触发
 
 #### 功能
 
