@@ -5,11 +5,13 @@
 
 ## 目录
 
-[艾特禁言](https://github.com/A1Panda/Yunzai-plugins?tab=readme-ov-file#%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80v02js)  
-[自动处理进群事件](https://github.com/A1Panda/Yunzai-plugins?tab=readme-ov-file#%E8%87%AA%E5%8A%A8%E5%A4%84%E7%90%86%E8%BF%9B%E7%BE%A4%E4%BA%8B%E4%BB%B6v30js)
+[艾特禁言](https://github.com/A1Panda/Yunzai-plugins/blob/main/%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80V0.2.js)  
+[自动处理进群事件](https://github.com/A1Panda/Yunzai-plugins/blob/main/%E8%87%AA%E5%8A%A8%E5%A4%84%E7%90%86%E8%BF%9B%E7%BE%A4%E4%BA%8B%E4%BB%B6V3.0.js)
 
+<details>
+<summary>艾特禁言插件</summary>
 
-### #艾特禁言V0.2.js
+### 艾特禁言V0.2.js
 
 #### 安装
 
@@ -44,8 +46,12 @@ curl -o "./plugins/example/艾特禁言V0.1.js" "https://raw.githubusercontent.c
 - **时间窗口管理**：通过时间窗口管理艾特历史记录，确保禁言策略的合理性。  
 
 
+</details>
 
-### #自动处理进群事件V3.0.js
+<details>
+<summary>自动处理进群事件</summary>
+
+### 自动处理进群事件V3.0.js
 
 #### 安装
 
@@ -70,6 +76,10 @@ curl -o "./plugins/example/自动处理进群事件V3.0.js" "https://raw.githubu
 
 - **灵活的配置**：可以为不同的群设置不同的问题、答案、黑名单和等级检查要求。  
 - **实时配置更新**：支持实时监控配置文件的变化，自动加载最新配置。    
+
+</details>
+
+
 
 <!-- #### 效果图
 
