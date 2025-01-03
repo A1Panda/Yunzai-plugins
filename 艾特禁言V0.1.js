@@ -39,7 +39,8 @@ export class example extends plugin {
             rule: [
                 {
                     reg: ".*", // 正则表达式匹配所有消息
-                    fnc: "checkAt" // 触发的函数
+                    fnc: "checkAt", // 触发的函数
+                    log: false
                 }
             ]
         });
