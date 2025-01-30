@@ -21,9 +21,9 @@
 
 | 插件名称 | 版本 | 描述 | 状态 |
 | --- | --- | --- | --- |
-| [艾特禁言](./艾特禁言V0.2.js) | V0.2 | 防止特定用户被频繁艾特的管理插件 | ✅ |
-| [自动处理进群事件](./自动处理进群事件V3.0.js) | V3.0 | 智能处理加群申请的管理插件 | ✅ |
-| [爱发电赞助](./爱发电赞助V1.0.js) | V1.0 | 爱发电平台赞助管理插件 | ✅ |
+| [艾特禁言](https://github.com/A1Panda/Yunzai-plugins/blob/main/艾特禁言V0.2.js) | V0.2 | 防止特定用户被频繁艾特的管理插件 | ✅ |
+| [自动处理进群事件](https://github.com/A1Panda/Yunzai-plugins/blob/main/自动处理进群事件V3.0.js) | V3.0 | 智能处理加群申请的管理插件 | ✅ |
+| [爱发电赞助](https://github.com/A1Panda/Yunzai-plugins/blob/main/爱发电赞助V1.0.js) | V1.0 | 爱发电平台赞助管理插件 | ✅ |
 
 ## 📥 安装说明
 
@@ -32,19 +32,19 @@
 选择需要的插件，复制对应的安装命令执行即可：
 
 **艾特禁言插件：**
-\`\`\`bash
-curl -o "./plugins/example/艾特禁言V0.2.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80V0.2.js"
-\`\`\`
+```bash
+curl -o "./plugins/example/艾特禁言V0.2.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/艾特禁言V0.2.js"
+```
 
 **自动处理进群事件插件：**
-\`\`\`bash
-curl -o "./plugins/example/自动处理进群事件V3.0.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/%E8%87%AA%E5%8A%A8%E5%A4%84%E7%90%86%E8%BF%9B%E7%BE%A4%E4%BA%8B%E4%BB%B6V3.0.js"
-\`\`\`
+```bash
+curl -o "./plugins/example/自动处理进群事件V3.0.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/自动处理进群事件V3.0.js"
+```
 
 **爱发电赞助插件：**
-\`\`\`bash
-curl -o "./plugins/example/爱发电赞助V1.0.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/%E7%88%B1%E5%8F%91%E7%94%B5%E8%B5%9E%E5%8A%A9V1.0.js"
-\`\`\`
+```bash
+curl -o "./plugins/example/爱发电赞助V1.0.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/爱发电赞助V1.0.js"
+```
 
 ### 方式二：手动下载
 
