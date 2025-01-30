@@ -6,7 +6,8 @@
 ## 目录
 
 [艾特禁言](https://github.com/A1Panda/Yunzai-plugins/blob/main/%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80V0.2.js)  
-[自动处理进群事件](https://github.com/A1Panda/Yunzai-plugins/blob/main/%E8%87%AA%E5%8A%A8%E5%A4%84%E7%90%86%E8%BF%9B%E7%BE%A4%E4%BA%8B%E4%BB%B6V3.0.js)
+[自动处理进群事件](https://github.com/A1Panda/Yunzai-plugins/blob/main/%E8%87%AA%E5%8A%A8%E5%A4%84%E7%90%86%E8%BF%9B%E7%BE%A4%E4%BA%8B%E4%BB%B6V3.0.js)  
+[爱发电赞助](https://github.com/A1Panda/Yunzai-plugins/blob/main/%E7%88%B1%E5%8F%91%E7%94%B5%E8%B5%9E%E5%8A%A9.js)
 
 <details>
 <summary>艾特禁言插件</summary>
@@ -76,6 +77,46 @@ curl -o "./plugins/example/自动处理进群事件V3.0.js" "https://raw.githubu
 
 - **灵活的配置**：可以为不同的群设置不同的问题、答案、黑名单和等级检查要求。  
 - **实时配置更新**：支持实时监控配置文件的变化，自动加载最新配置。    
+
+</details>
+
+<details>
+<summary>爱发电赞助</summary>
+
+### 爱发电赞助.js
+
+#### 安装
+
+##### Github
+
+```
+curl -o "./plugins/example/艾特禁言V0.1.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/refs/heads/main/%E8%89%BE%E7%89%B9%E7%A6%81%E8%A8%80V0.2.js"
+```
+
+#### 简介
+
+    原作者：浅巷墨黎   
+    重构者：A1_Panda
+
+#### 版本
+
+- **V0.1** 重构
+- **V0.2** 修复BUG 1.机器人不是群主或管理员也会触发 2.修复非管理员或群主用户无法触发
+
+#### 功能
+
+- **防止特定用户被频繁艾特**：插件可以配置特定用户，当这些用户被艾特超过一定次数时，艾特者会被禁言。
+- **自定义配置**：可以为不同的用户设置不同的禁言时间、提示消息、最大艾特次数和时间窗口。
+- **默认配置**：对于未在特定配置中的用户，使用默认的禁言配置。
+- **主人豁免**：配置了主人的QQ号列表，主人艾特不会触发禁言。
+- **机器人自艾特豁免**：机器人自己艾特自己不会触发禁言。
+
+#### 亮点
+
+- **灵活的配置**：可以为不同的用户设置不同的禁言策略，满足不同场景的需求。
+- **详细的提示信息**：在禁言前会发送自定义的提示消息，告知艾特者禁言原因。
+- **时间窗口管理**：通过时间窗口管理艾特历史记录，确保禁言策略的合理性。  
+
 
 </details>
 
