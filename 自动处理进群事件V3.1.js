@@ -19,7 +19,8 @@ const defaultConfig = {
         BlackList: ["1516335938", "12312123"], //黑名单QQ 如果想配置这个 必须在外置配置文件中配置 或者使用命令配置
         exactMatch: false, //是否精确匹配
         enableLevelCheck: false, //是否启用等级检查
-        minLevel: 25 //最低等级
+        minLevel: 25, //最低等级
+        autoBlacklistOnLeave: true  // 添加退群自动拉黑开关，默认开启
     },
     '231231412': {
         wenti: `这是一个问题吗？`,
@@ -27,7 +28,8 @@ const defaultConfig = {
         BlackList: ["1516335938", "12312312"],
         exactMatch: false,
         enableLevelCheck: false,
-        minLevel: 25
+        minLevel: 25,
+        autoBlacklistOnLeave: true  // 添加退群自动拉黑开关，默认开启
     },
     '568756345': {
         wenti: `这是一个问题吗？`,
@@ -35,7 +37,8 @@ const defaultConfig = {
         BlackList: ["1516335938", "12312312"],
         exactMatch: false,
         enableLevelCheck: false,
-        minLevel: 25
+        minLevel: 25,
+        autoBlacklistOnLeave: true  // 添加退群自动拉黑开关，默认开启
     }
 };
 
@@ -64,6 +67,10 @@ if (!fs.existsSync(configFilePath)) {
             for (const key in defaultConfig[groupId]) {
                 if (key !== 'BlackList' && existingConfig[groupId][key] !== defaultConfig[groupId][key]) {
                     existingConfig[groupId][key] = defaultConfig[groupId][key];
+                }
+                // 确保添加autoBlacklistOnLeave选项
+                if (!('autoBlacklistOnLeave' in existingConfig[groupId])) {
+                    existingConfig[groupId].autoBlacklistOnLeave = true;
                 }
             }
         }
@@ -206,6 +213,10 @@ export class GroupJoinHandler extends plugin {
                 {
                     reg: '^#加群自动同意拉黑.*',
                     fnc: 'Blocking'
+                },
+                {
+                    reg: '^#(开启|关闭)退群自动拉黑$',
+                    fnc: 'toggleAutoBlacklist'
                 }
             ]
         });
@@ -268,6 +279,39 @@ export class GroupJoinHandler extends plugin {
             e.reply('操作失败，请稍后再试或联系管理员。');
         }
     }
+
+    // 添加新方法处理开关命令
+    async toggleAutoBlacklist(e) {
+        try {
+            const memberInfo = await Bot.pickMember(e.group_id, e.user_id);
+            if (!['owner', 'admin'].includes(memberInfo.role) && !e.isMaster) {
+                e.reply('只有群主或管理员才能操作此功能');
+                return;
+            }
+
+            if (!e.isGroup) {
+                e.reply('该功能仅限群聊使用');
+                return;
+            }
+
+            const groupConfig = config[`${e.group_id}`];
+            if (!groupConfig) {
+                e.reply('当前群未配置自动处理功能');
+                return;
+            }
+
+            const isEnable = e.msg.includes('开启');
+            groupConfig.autoBlacklistOnLeave = isEnable;
+
+            // 保存配置
+            fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2));
+
+            e.reply(`已${isEnable ? '开启' : '关闭'}退群自动拉黑功能`);
+        } catch (error) {
+            console.error('切换退群自动拉黑状态失败:', error);
+            e.reply('操作失败，请稍后重试');
+        }
+    }
 }
 
 // 添加处理退群事件的类
@@ -285,6 +329,11 @@ export class GroupLeaveHandler extends plugin {
         // 检查是否是配置过的群
         let groupConfig = config[`${e.group_id}`];
         if (!groupConfig) return false;
+
+        // 检查是否开启了退群自动拉黑
+        if (!groupConfig.autoBlacklistOnLeave) {
+            return false;
+        }
 
         // 获取退群用户的QQ
         const userId = `${e.user_id}`;
