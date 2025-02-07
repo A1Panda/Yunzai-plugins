@@ -50,7 +50,7 @@ export class Screenshot extends plugin {
             priority: 5000,
             rule: [
                 {
-                    reg: "^http",
+                    reg: "^http(s)?://",
                     fnc: "screenshot",
                 },
                 {
