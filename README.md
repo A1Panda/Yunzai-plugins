@@ -153,6 +153,20 @@ curl -o "./plugins/example/自动处理进群事件V3.1.js" "https://raw.githubu
 curl -o "./plugins/example/爱发电赞助V1.0.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/爱发电赞助V1.0.js"
 ```
 
+**🖼️ 网页截图工具插件**
+```bash
+curl -o "./plugins/example/网页截图工具V1.0.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/网页截图工具V1.0.js"
+```
+
+
+
+**🔒 针对禁言插件**
+```bash
+curl -o "./plugins/example/针对禁言V0.1.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/针对禁言V0.1.js"
+```
+
+
+
 </td></tr>
 </table>
 
