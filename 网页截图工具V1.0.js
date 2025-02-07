@@ -187,11 +187,19 @@ export class Screenshot extends plugin {
                 '--no-zygote'
             ];
 
-            // 检查代理配置
-            if (config.proxy.enabled) {
+            // 检查是否需要使用代理
+            const needProxy = await this.checkNeedProxy(link);
+            
+            // 只有在代理开启或需要强制代理时才使用代理
+            if (needProxy) {
                 // 验证代理配置
                 if (!config.proxy.host || !config.proxy.port) {
                     throw new Error('代理配置不完整');
+                }
+
+                if (!config.proxy.enabled) {
+                    await this.e.reply("检测到当前网站需要代理访问，请先开启代理");
+                    return false;
                 }
 
                 // 构建代理服务器地址
@@ -217,6 +225,11 @@ export class Screenshot extends plugin {
                 process.env.HTTPS_PROXY = `http://${config.proxy.host}:${config.proxy.port}`;
                 
                 logger.info(`[截图] 使用${proxyType}代理: ${proxyServer}`);
+            } else {
+                // 清除环境变量
+                delete process.env.HTTP_PROXY;
+                delete process.env.HTTPS_PROXY;
+                logger.info(`[截图] 不使用代理`);
             }
 
             // 使用自定义启动参数初始化浏览器
@@ -472,6 +485,42 @@ export class Screenshot extends plugin {
             e.reply("格式错误！正确格式：#截图代理设置 [http://]127.0.0.1 7890");
         }
         return true;
+    }
+
+    // 添加检查是否需要代理的方法
+    async checkNeedProxy(url) {
+        // 需要代理的网站列表
+        const proxyDomains = [
+            'github.com',
+            'raw.githubusercontent.com',
+            'gist.githubusercontent.com',
+            'youtube.com',
+            'google.com',
+            'twitter.com',
+            'facebook.com',
+            't.co',
+            'twimg.com',
+            'pornhub.com',
+            'xvideos.com',
+            'xhamster.com',
+            'onlyfans.com',
+            'chaturbate.com',
+            'redtube.com'
+        ];
+
+        try {
+            const urlObj = new URL(url);
+            // 检查是否在需要代理的域名列表中
+            const needForceProxy = proxyDomains.some(domain => 
+                urlObj.hostname.includes(domain)
+            );
+
+            // 如果在列表中或代理已开启，则使用代理
+            return needForceProxy || config.proxy.enabled;
+        } catch (error) {
+            logger.error(`[截图] URL解析失败: ${error}`);
+            return config.proxy.enabled;
+        }
     }
 }
 
