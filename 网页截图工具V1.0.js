@@ -251,8 +251,8 @@ export class Screenshot extends plugin {
             }
 
             // 设置页面超时
-            await page.setDefaultNavigationTimeout(60000);  // 增加导航超时
-            await page.setDefaultTimeout(60000);
+            await page.setDefaultNavigationTimeout(30000);  // 减少到30秒
+            await page.setDefaultTimeout(30000);
 
             // 设置请求头
             await page.setExtraHTTPHeaders({
@@ -266,13 +266,28 @@ export class Screenshot extends plugin {
             // 访问页面
             logger.info(`[截图] 正在加载页面: ${link}`);
             const response = await page.goto(link, {
-                waitUntil: 'networkidle0',
-                timeout: 60000
+                waitUntil: 'domcontentloaded',  // 改为 domcontentloaded，不等待所有资源加载完成
+                timeout: 30000
             });
 
             if (!response || !response.ok()) {
                 throw new Error(`页面加载失败: ${response ? response.status() : 'unknown error'}`);
             }
+
+            // 等待页面主要内容加载
+            await page.evaluate(() => {
+                return new Promise((resolve) => {
+                    // 如果页面已经加载完成，直接返回
+                    if (document.readyState === 'complete') {
+                        resolve();
+                        return;
+                    }
+                    // 否则等待 load 事件
+                    window.addEventListener('load', resolve, { once: true });
+                    // 设置5秒超时
+                    setTimeout(resolve, 5000);
+                });
+            });
 
             logger.info('[截图] 页面加载完成，正在处理图片...');
             
