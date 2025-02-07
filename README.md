@@ -217,11 +217,21 @@ curl -o "./plugins/example/爱发电赞助V1.0.js" "https://raw.githubuserconten
 
 - 📋 网页截图
 - 🔗 发送链接自动截图
+- 🔍 支持代理设置
+- 📸 支持长截图
+- 🔄 自动更新配置
+
+### 配置说明
+
+- 需要配置代理服务器信息
+- 支持 `http` 和 `socks5` 代理
+
 
 </details>
 
 
 ## 💬 问题反馈
+
 
 <div align="center">
 <table>
