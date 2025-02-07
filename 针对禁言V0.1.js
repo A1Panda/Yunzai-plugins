@@ -138,13 +138,23 @@ export class checkAt extends plugin {
             return true;
         }
 
+        let targetQQ;
+        // 检查是否是@方式
         const atList = e.message.filter(msg => msg.type === 'at');
-        if (!atList.length) {
-            e.reply("请@要监控的用户");
-            return true;
+        if (atList.length) {
+            targetQQ = String(atList[0].qq);
+        } else {
+            // 尝试从消息中提取QQ号
+            const match = e.msg.match(/^#添加针对\s*(\d{5,})/);
+            if (match) {
+                targetQQ = match[1];
+            }
         }
 
-        const targetQQ = String(atList[0].qq);
+        if (!targetQQ) {
+            e.reply("请@要监控的用户或输入其QQ号\n例如：#添加针对@用户 或 #添加针对123456789");
+            return true;
+        }
         
         // 检查是否是豁免用户
         if (this.isExempt(targetQQ)) {
@@ -166,26 +176,37 @@ export class checkAt extends plugin {
         };
 
         this.saveConfig();
-        e.reply("已添加到监控名单");
+        e.reply(`已添加 ${targetQQ} 到监控名单`);
         return true;
     }
 
     // 删除被监控用户
     async removeMonitoredUser(e) {
-        logger.info(`[针对禁言] 收到删除命令: ${e.msg}`); // 添加日志
+        logger.info(`[针对禁言] 收到删除命令: ${e.msg}`);
 
         if (!await this.checkAuth(e)) {
             e.reply("只有主人、群主和管理员才能使用此命令");
             return true;
         }
 
+        let targetQQ;
+        // 检查是否是@方式
         const atList = e.message.filter(msg => msg.type === 'at');
-        if (!atList.length) {
-            e.reply("请@要移除的用户");
+        if (atList.length) {
+            targetQQ = String(atList[0].qq);
+        } else {
+            // 尝试从消息中提取QQ号
+            const match = e.msg.match(/^#删除针对\s*(\d{5,})/);
+            if (match) {
+                targetQQ = match[1];
+            }
+        }
+
+        if (!targetQQ) {
+            e.reply("请@要移除的用户或输入其QQ号\n例如：#删除针对@用户 或 #删除针对123456789");
             return true;
         }
 
-        const targetQQ = String(atList[0].qq);
         if (!config.monitoredUsers[targetQQ]) {
             e.reply("该用户不在监控名单中");
             return true;
@@ -193,7 +214,7 @@ export class checkAt extends plugin {
 
         delete config.monitoredUsers[targetQQ];
         this.saveConfig();
-        e.reply("已从监控名单中移除");
+        e.reply(`已将 ${targetQQ} 从监控名单中移除`);
         return true;
     }
 
