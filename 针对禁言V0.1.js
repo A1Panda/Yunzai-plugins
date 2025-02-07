@@ -43,7 +43,7 @@ export class checkAt extends plugin {
             name: "针对禁言插件",
             dsc: "监控特定用户的消息频率",
             event: "message",
-            priority: 9999,
+            priority: 5000,
             rule: [
                 {
                     reg: "^#添加针对.*$",
