@@ -1,13 +1,50 @@
 import fs from "fs";
 import puppeteer from "../../lib/puppeteer/puppeteer.js";
+import sizeOf from "image-size";
+
+// 配置文件路径
+const CONFIG_PATH = './config/screenshot.json';
+
+// 默认配置
+const DEFAULT_CONFIG = {
+    fullScreen: true,        // 是否开启长截图
+    proxy: {
+        enabled: false,      // 是否启用代理
+        type: 'http',        // 默认使用http代理
+        host: '127.0.0.1',   // 不带协议前缀的主机地址
+        port: 7897,
+        username: '',        // 代理用户名
+        password: ''         // 代理密码
+    }
+};
+
+// 读取配置
+let config;
+try {
+    if (fs.existsSync(CONFIG_PATH)) {
+        config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    } else {
+        // 确保配置目录存在
+        const configDir = './plugins/example/config';
+        if (!fs.existsSync(configDir)) {
+            fs.mkdirSync(configDir, { recursive: true });
+        }
+        // 写入默认配置
+        config = DEFAULT_CONFIG;
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+    }
+} catch (error) {
+    console.error("读取配置文件失败:", error);
+    config = DEFAULT_CONFIG;
+}
 
 // 截图前等待的时间
-const screenWaitTime = 3;
+const screenWaitTime = 10;
 
 export class Screenshot extends plugin {
     constructor() {
         super({
-            name: "[R插件补集]http截图",
+            name: "网页截图工具",
             dsc: "http截图",
             event: "message",
             priority: 5000,
@@ -24,14 +61,29 @@ export class Screenshot extends plugin {
                     reg: "^#gittr$",
                     fnc: "githubTrending",
                 },
+                {
+                    reg: "^#截图代理(开启|关闭)$",
+                    fnc: "toggleProxy",
+                },
+                {
+                    reg: "^#截图代理设置\\s*((?:http|socks5|https):\/\/)?([^:\s]+)\s*(\\d+)$",
+                    fnc: "setProxy",
+                },
             ],
         });
         // 创建临时目录
         if (!fs.existsSync('./temp')) {
             fs.mkdirSync('./temp', { recursive: true });
         }
-        // 默认使用长截图
-        this.fullScreen = true;
+    }
+
+    // 保存配置
+    saveConfig() {
+        try {
+            fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+        } catch (error) {
+            logger.error(`[截图] 保存配置失败: ${error}`);
+        }
     }
 
     async delay(timeout) {
@@ -48,20 +100,21 @@ export class Screenshot extends plugin {
         
         switch (command) {
             case '开启':
-                this.fullScreen = true;
+                config.fullScreen = true;
                 e.reply("已开启长截图模式");
                 break;
             case '关闭':
-                this.fullScreen = false;
+                config.fullScreen = false;
                 e.reply("已关闭长截图模式");
                 break;
             case '切换':
-                this.fullScreen = !this.fullScreen;
-                e.reply(`已${this.fullScreen ? '开启' : '关闭'}长截图模式`);
+                config.fullScreen = !config.fullScreen;
+                e.reply(`已${config.fullScreen ? '开启' : '关闭'}长截图模式`);
                 break;
         }
 
-        logger.info(`[截图] ${this.fullScreen ? '开启' : '关闭'}长截图模式`);
+        this.saveConfig();
+        logger.info(`[截图] ${config.fullScreen ? '开启' : '关闭'}长截图模式`);
         return true;
     }
 
@@ -78,7 +131,7 @@ export class Screenshot extends plugin {
         }
 
         e.reply("开始截图，请稍候...");
-        await this.sendScreenShot(url, this.fullScreen);
+        await this.sendScreenShot(url, config.fullScreen);
         return true;
     }
 
@@ -125,25 +178,176 @@ export class Screenshot extends plugin {
         let browser = null;
         let tempFile = null;
         try {
-            browser = await puppeteer.browserInit();
+            // 基础启动参数
+            const launchArgs = [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--no-zygote'
+            ];
+
+            // 检查代理配置
+            if (config.proxy.enabled) {
+                // 验证代理配置
+                if (!config.proxy.host || !config.proxy.port) {
+                    throw new Error('代理配置不完整');
+                }
+
+                // 构建代理服务器地址
+                const proxyType = config.proxy.type || 'http';
+                let proxyServer;
+                
+                // 根据代理类型构建代理地址
+                if (proxyType === 'socks5') {
+                    proxyServer = `socks5://${config.proxy.host}:${config.proxy.port}`;
+                } else {
+                    proxyServer = `${config.proxy.host}:${config.proxy.port}`;
+                }
+
+                // 添加代理参数
+                launchArgs.push(
+                    `--proxy-server=${proxyServer}`,
+                    '--ignore-certificate-errors',
+                    '--disable-web-security'
+                );
+
+                // 设置环境变量
+                process.env.HTTP_PROXY = `http://${config.proxy.host}:${config.proxy.port}`;
+                process.env.HTTPS_PROXY = `http://${config.proxy.host}:${config.proxy.port}`;
+                
+                logger.info(`[截图] 使用${proxyType}代理: ${proxyServer}`);
+            }
+
+            // 使用自定义启动参数初始化浏览器
+            browser = await puppeteer.browserInit({
+                args: launchArgs,
+                ignoreHTTPSErrors: true,
+                timeout: 60000  // 增加超时时间
+            });
+
+            // 创建新页面
             let page = await browser.newPage();
             
-            // 设置视口
-            await page.setViewport({ 
-                width: 1920, 
-                height: 1080,
+            // 如果使用代理且有认证信息
+            if (config.proxy.enabled && config.proxy.username && config.proxy.password) {
+                await page.authenticate({
+                    username: config.proxy.username,
+                    password: config.proxy.password
+                });
+            }
+
+            // 设置页面超时
+            await page.setDefaultNavigationTimeout(60000);  // 增加导航超时
+            await page.setDefaultTimeout(60000);
+
+            // 设置请求头
+            await page.setExtraHTTPHeaders({
+                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            });
+
+            // 访问页面
+            logger.info(`[截图] 正在加载页面: ${link}`);
+            const response = await page.goto(link, {
+                waitUntil: 'networkidle0',
+                timeout: 60000
+            });
+
+            if (!response || !response.ok()) {
+                throw new Error(`页面加载失败: ${response ? response.status() : 'unknown error'}`);
+            }
+
+            logger.info('[截图] 页面加载完成，正在处理图片...');
+            
+            // 访问页面后获取实际内容宽度
+            const pageWidth = await page.evaluate(() => {
+                const contentWidth = Math.max(
+                    document.documentElement.scrollWidth,
+                    document.body.scrollWidth,
+                    document.documentElement.offsetWidth,
+                    document.body.offsetWidth
+                );
+                // 获取实际内容区域的宽度，排除空白区域
+                const mainContent = document.querySelector('main, #main, .main, article, .content, #content');
+                if (mainContent) {
+                    // 添加左右各40px的留白
+                    const contentWidth = mainContent.offsetWidth;
+                    const paddingWidth = 80; // 左右各40px
+                    return Math.min(contentWidth + paddingWidth, 1920); // 限制最大宽度为1920px
+                }
+                // 如果没有找到主要内容区，使用页面宽度并添加适当留白
+                return Math.min(contentWidth + 80, 1920); // 默认也添加80px留白
+            });
+
+            // 调整视口宽度以适应内容
+            await page.setViewport({
+                width: pageWidth,
+                height: 800,
                 deviceScaleFactor: 1
             });
 
-            // 访问页面并截图
-            await page.goto(link);
-            logger.info(`开始截图...${link}`);
-            await this.delay(screenWaitTime * 1000);
+            // 根据模式选择不同的处理方式
+            if (fullPage) {
+                // 长图模式：滚动加载
+                await Promise.race([
+                    page.evaluate(async () => {
+                        // 滚动触发懒加载
+                        await new Promise((resolve) => {
+                            let totalHeight = 0;
+                            const distance = 200;
+                            const timer = setInterval(() => {
+                                const scrollHeight = document.body.scrollHeight;
+                                window.scrollBy(0, distance);
+                                totalHeight += distance;
+
+                                if(totalHeight >= scrollHeight){
+                                    clearInterval(timer);
+                                    window.scrollTo(0, 0);
+                                    resolve();
+                                }
+                            }, 50);
+                        });
+                    }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('加载超时')), 10000))
+                ]).catch(error => {
+                    logger.warn(`[截图] 页面加载未完全完成: ${error}`);
+                });
+            } else {
+                // 普通模式：等待可视区域内容加载
+                await Promise.race([
+                    page.evaluate(async () => {
+                        // 只等待视口内的图片加载
+                        const images = Array.from(document.images)
+                            .filter(img => {
+                                const rect = img.getBoundingClientRect();
+                                return rect.top < window.innerHeight;
+                            });
+
+                        await Promise.all(
+                            images
+                                .filter(img => !img.complete)
+                                .map(img => new Promise(resolve => {
+                                    img.onload = img.onerror = resolve;
+                                }))
+                        );
+                    }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('加载超时')), 5000))
+                ]).catch(error => {
+                    logger.warn(`[截图] 首屏加载未完成: ${error}`);
+                });
+            }
+
+            // 短暂等待以确保渲染
+            await this.delay(1000);
 
             // 生成临时文件名
             tempFile = `./temp/screenshot_${Date.now()}.png`;
 
-            // 第一次截图
+            // 截图
             await page.screenshot({
                 path: tempFile,
                 type: "png",
@@ -151,11 +355,11 @@ export class Screenshot extends plugin {
                 omitBackground: false
             });
 
-            // 准备HTML内容
+            // 准备HTML内容时使用优化后的宽度
             const screenshotBase64 = fs.readFileSync(tempFile, "base64");
-            const htmlContent = screenRender(screenshotBase64, link);
+            const htmlContent = screenRender(screenshotBase64, link, pageWidth);
 
-            // 创建新页面而不是重用当前页面
+            // 创建新页面用于渲染最终效果
             const newPage = await browser.newPage();
             await newPage.setViewport({
                 width: 1920,
@@ -199,34 +403,91 @@ export class Screenshot extends plugin {
                 omitBackground: false
             });
 
+            logger.info('[截图] 截图处理完成，准备发送...');
+
             // 发送图片
             await this.e.reply(segment.image(fs.readFileSync(tempFile)));
             return true;
 
         } catch (error) {
-            logger.error(`截图失败: ${error}`);
-            if (!error.message.includes('找不到浏览器窗口元素')) {
-                await this.e.reply("截图失败，尝试使用备用方案...");
-                // 使用原始截图作为备用方案
-                if (tempFile && fs.existsSync(tempFile)) {
-                    await this.e.reply(segment.image(fs.readFileSync(tempFile)));
-                    return true;
-                }
+            logger.error(`[截图] 错误详情: ${error.stack || error}`);
+            
+            if (error.message.includes('net::ERR_PROXY_CONNECTION_FAILED')) {
+                await this.e.reply("代理服务器连接失败，请检查代理服务器是否正常运行");
+            } else if (error.message.includes('net::ERR_TUNNEL_CONNECTION_FAILED')) {
+                await this.e.reply("代理隧道连接失败，请检查代理服务器配置");
+            } else if (error.message.includes('net::ERR_CONNECTION_RESET')) {
+                await this.e.reply("连接被重置，可能是代理服务器拒绝了连接，请检查代理设置");
+            } else if (error.message.includes('net::ERR_CONNECTION_TIMED_OUT')) {
+                await this.e.reply("连接超时，请检查代理服务器响应时间");
+            } else {
+                await this.e.reply(`截图失败: ${error.message}`);
             }
             return false;
         } finally {
-            // 清理资源
-            if (browser) {
-                await browser.close();
-            }
+            if (browser) await browser.close();
             if (tempFile && fs.existsSync(tempFile)) {
                 fs.unlinkSync(tempFile);
             }
         }
     }
+
+    // 修改代理相关命令也使用配置文件
+    async toggleProxy(e) {
+        if (!e.isMaster) {
+            e.reply("只有主人才能控制截图代理设置");
+            return true;
+        }
+
+        const isEnable = e.msg.includes("开启");
+        config.proxy.enabled = isEnable;
+        this.saveConfig();
+        e.reply(`已${isEnable ? '开启' : '关闭'}截图代理`);
+        return true;
+    }
+
+    async setProxy(e) {
+        if (!e.isMaster) {
+            e.reply("只有主人才能设置截图代理");
+            return true;
+        }
+
+        // 修改正则以支持可选的代理类型
+        const match = e.msg.match(/^#截图代理设置\s*((?:http|socks5|https):\/\/)?([^:\s]+)\s*(\d+)$/i);
+        if (match) {
+            const [, proxyType = 'http://', host, port] = match;
+            
+            // 设置代理类型（移除URL中的://）
+            config.proxy.type = proxyType.replace('://', '') || 'http';
+            // 设置主机地址（确保不包含协议前缀）
+            config.proxy.host = host;
+            config.proxy.port = parseInt(port);
+
+            this.saveConfig();
+            e.reply(`截图代理已更新：${config.proxy.type}://${config.proxy.host}:${config.proxy.port}`);
+
+            // 输出详细日志
+            logger.info(`[截图] 代理设置已更新 - 类型:${config.proxy.type} 地址:${config.proxy.host} 端口:${config.proxy.port}`);
+        } else {
+            e.reply("格式错误！正确格式：#截图代理设置 [http://]127.0.0.1 7890");
+        }
+        return true;
+    }
 }
 
-function screenRender(screenshotBase64, url) {
+function screenRender(screenshotBase64, url, pageWidth) {
+    // 获取图片尺寸
+    const img = new Buffer.from(screenshotBase64, 'base64');
+    let dimensions;
+    try {
+        dimensions = sizeOf(img);
+    } catch (e) {
+        dimensions = { width: pageWidth || 1200, height: 800 };
+    }
+
+    // 使用页面实际宽度计算容器宽度，确保有适当留白
+    const containerWidth = Math.min(pageWidth || dimensions.width, 1920);
+
     return `
     <!DOCTYPE html>
     <html lang="zh-CN">
@@ -255,30 +516,29 @@ function screenRender(screenshotBase64, url) {
 
             body {
                 min-height: 100vh;
-                display: grid;
-                place-items: center;
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                padding: 2rem;
+                padding: 0.5rem;
+                margin: 0;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
 
             .container {
-                width: 100%;
-                max-width: 1920px;
+                width: ${containerWidth}px;
+                max-width: 98vw;
                 margin: 0 auto;
+                padding: 0 10px; /* 添加容器级别的留白 */
             }
 
             .browser-window {
+                width: 100%;
                 background-color: var(--window-bg);
-                border-radius: 10px;
-                box-shadow: 
-                    0 12px 20px var(--shadow-color),
-                    0 2px 6px rgba(0, 0, 0, 0.08),
-                    0 0 1px rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
                 overflow: hidden;
-                transform: translateZ(0);
-                backdrop-filter: blur(10px);
-                border: 1px solid var(--border-color);
+                margin: 10px 0; /* 上下添加间距 */
+                box-shadow: 0 8px 16px var(--shadow-color);
             }
 
             .browser-header {
@@ -362,6 +622,7 @@ function screenRender(screenshotBase64, url) {
             .screenshot-container {
                 position: relative;
                 line-height: 0;
+                width: 100%;
             }
 
             .screenshot {
@@ -370,19 +631,11 @@ function screenRender(screenshotBase64, url) {
                 display: block;
             }
 
-            @media (max-width: 768px) {
+            /* 针对长截图优化 */
+            @media screen and (min-height: 2000px) {
                 body {
-                    padding: 1rem;
-                }
-                
-                .browser-header {
-                    padding: 10px 12px;
-                    height: 42px;
-                }
-
-                .url-bar {
-                    font-size: 12px;
-                    padding: 6px 10px;
+                    align-items: flex-start;
+                    padding-top: 1rem;
                 }
             }
 
@@ -393,6 +646,10 @@ function screenRender(screenshotBase64, url) {
                     --border-color: #404040;
                     --url-text: #e0e0e0;
                     --url-bg: #333333;
+                }
+                
+                body {
+                    background: linear-gradient(135deg, #2d3436 0%, #1a1a1a 100%);
                 }
             }
         </style>
