@@ -293,23 +293,45 @@ export class Screenshot extends plugin {
             
             // 访问页面后获取实际内容宽度
             const pageWidth = await page.evaluate(() => {
+                // 获取页面内容宽度
                 const contentWidth = Math.max(
                     document.documentElement.scrollWidth,
                     document.body.scrollWidth,
                     document.documentElement.offsetWidth,
                     document.body.offsetWidth
                 );
+
                 // 获取实际内容区域的宽度，排除空白区域
                 const mainContent = document.querySelector('main, #main, .main, article, .content, #content');
+                
+                // 设置宽度限制
+                const MIN_WIDTH = 800;   // 最小宽度
+                const MAX_WIDTH = 1920;  // 最大宽度
+                const PADDING = 80;      // 左右留白总和
+
+                let finalWidth;
                 if (mainContent) {
-                    // 添加左右各40px的留白
-                    const contentWidth = mainContent.offsetWidth;
-                    const paddingWidth = 80; // 左右各40px
-                    return Math.min(contentWidth + paddingWidth, 1920); // 限制最大宽度为1920px
+                    // 使用主要内容区域的宽度
+                    const mainWidth = mainContent.offsetWidth;
+                    if (mainWidth < 100 || mainWidth > 3000) {  // 检测异常宽度
+                        // 如果主内容区域宽度异常，使用视口宽度
+                        finalWidth = Math.min(window.innerWidth, MAX_WIDTH);
+                    } else {
+                        finalWidth = mainWidth;
+                    }
+                } else {
+                    // 如果没有找到主要内容区，使用页面宽度
+                    finalWidth = Math.min(contentWidth, MAX_WIDTH);
                 }
-                // 如果没有找到主要内容区，使用页面宽度并添加适当留白
-                return Math.min(contentWidth + 80, 1920); // 默认也添加80px留白
+
+                // 确保宽度在合理范围内
+                finalWidth = Math.max(MIN_WIDTH, Math.min(finalWidth + PADDING, MAX_WIDTH));
+                
+                return finalWidth;
             });
+
+            // 输出宽度信息用于调试
+            logger.info(`[截图] 页面宽度: ${pageWidth}px`);
 
             // 调整视口宽度以适应内容
             await page.setViewport({
