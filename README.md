@@ -108,11 +108,22 @@
 <td align="center">
 <img src="https://img.shields.io/badge/V1.0-blue?style=flat-square" alt="version">
 </td>
-
-
 <td>网页截图工具</td>
 <td align="center">✅</td>
 </tr>
+
+<tr>
+<td align="center">
+<a href="https://github.com/A1Panda/Yunzai-plugins/blob/main/针对禁言V0.1.js">🔒 针对禁言</a>
+</td>
+<td align="center">
+<img src="https://img.shields.io/badge/V0.1-blue?style=flat-square" alt="version">
+</td>
+
+<td>针对禁言</td>
+<td align="center">✅</td>
+</tr>
+
 
 </table>
 
@@ -225,6 +236,25 @@ curl -o "./plugins/example/爱发电赞助V1.0.js" "https://raw.githubuserconten
 
 - 需要配置代理服务器信息
 - 支持 `http` 和 `socks5` 代理
+
+
+</details>
+
+<details>
+<summary><b>🔒 针对禁言 (V0.1)</b></summary>
+
+### 功能特点
+
+- 📋 监控特定用户消息频率
+- 🔗 支持添加和删除监控用户
+- 🔄 自动更新配置
+
+
+
+### 配置说明
+
+- 需要配置监控用户QQ号
+
 
 
 </details>
