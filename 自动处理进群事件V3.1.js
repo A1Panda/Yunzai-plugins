@@ -7,7 +7,7 @@ import fs from 'fs';
  * 修改者：飞舞、浅巷墨黎、一只哒
  * V3作者：A1_Panda
  * 
- * 插件发布地址：https://github.com/Dnyo666/Qxml-Yunzai-js
+ * 插件发布地址：https://gitee.com/qiannqq/yunzai-plugin-JS
  * 禁止商用、倒卖等获利行为
  */
 

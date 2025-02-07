@@ -101,11 +101,25 @@
 <td align="center">✅</td>
 </tr>
 
+<tr>
+<td align="center">
+<a href="https://github.com/A1Panda/Yunzai-plugins/blob/main/网页截图工具V1.0.js">🖼️ 网页截图工具</a>
+</td>
+<td align="center">
+<img src="https://img.shields.io/badge/V1.0-blue?style=flat-square" alt="version">
+</td>
+
+
+<td>网页截图工具</td>
+<td align="center">✅</td>
+</tr>
+
 </table>
 
 ## 📥 安装说明
 
 <details>
+
 <summary>💫 方式一：使用 curl 命令安装（推荐）</summary>
 
 ### 选择需要的插件，复制对应的命令执行即可：
@@ -195,6 +209,17 @@ curl -o "./plugins/example/爱发电赞助V1.0.js" "https://raw.githubuserconten
 - 在爱发电[开发者设置](https://afdian.com/dashboard/dev)中获取相关信息
 
 </details>
+
+<details>
+<summary><b>🖼️ 网页截图工具 (V1.0)</b></summary>
+
+### 功能特点
+
+- 📋 网页截图
+- 🔗 发送链接自动截图
+
+</details>
+
 
 ## 💬 问题反馈
 
