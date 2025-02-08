@@ -124,6 +124,20 @@
 <td align="center">✅</td>
 </tr>
 
+<tr>
+<td align="center">
+<a href="https://github.com/A1Panda/Yunzai-plugins/blob/main/表情合成.js">😇 表情合成</a>
+</td>
+<td align="center">
+<img src="https://img.shields.io/badge/V0.1-blue?style=flat-square" alt="version">
+</td>
+
+
+<td>表情合成</td>
+<td align="center">✅</td>
+</tr>
+
+
 
 </table>
 
@@ -268,6 +282,25 @@ curl -o "./plugins/example/针对禁言V0.1.js" "https://raw.githubusercontent.c
 ### 配置说明
 
 - 需要配置监控用户QQ号
+
+</details>
+
+<details>
+<summary><b>😇 表情合成 (V1.0)</b></summary>
+
+### 功能特点
+
+- 🎨 支持多种表情合成模板
+- 🖼️ 自定义图片合成
+- 📸 支持QQ表情和自定义图片
+
+- ⚡ 快速生成表情包
+- 💾 自动保存合成结果
+
+### 配置说明
+
+- 无需特殊配置,开箱即用
+- 可选配置表情包保存路径
 
 
 
