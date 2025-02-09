@@ -220,33 +220,6 @@ export class sponsor extends plugin {
         return false
     }
 
-    // 从API更新赞助信息
-    async refresh(e) {
-        try {
-            const [sponsorRes, orderRes] = await Promise.all([
-                fetch(`https://afdian.com/api/open/query-sponsor?${this.createSign('{"page":1,"per_page":100}')}`).then(r => r.json()),
-                fetch(`https://afdian.com/api/open/query-order?${this.createSign('{"page":1,"per_page":100}')}`).then(r => r.json())
-            ])
-
-            if (sponsorRes.ec !== 200 || orderRes.ec !== 200) {
-                return e.reply(`更新失败: ${sponsorRes.em || orderRes.em}`)
-            }
-
-            const { userQQMap, noQQOrders } = this.processOrders(orderRes.data.list)
-            const { list, stats } = this.processSponsorData(sponsorRes.data.list, userQQMap)
-            
-            if (this.saveSponsorData(list)) {
-                const report = this.generateReport(stats, noQQOrders, sponsorRes.data.list)
-                e.reply(report.join('\n'))
-                return true
-            }
-            return false
-        } catch (err) {
-            logger?.error?.(err)
-            return e.reply(`更新失败: ${err.message}`)
-        }
-    }
-
     // 处理订单数据
     processOrders(orders) {
         const userQQMap = new Map()
@@ -297,7 +270,7 @@ export class sponsor extends plugin {
     }
 
     // 生成更新报告
-    generateReport(stats, noQQOrders, sponsors) {
+    async generateReport(stats, noQQOrders, sponsors) {
         const report = [
             "赞助信息更新完成！",
             `✓ 成功更新: ${stats.updated} 条记录`,
@@ -306,19 +279,82 @@ export class sponsor extends plugin {
         ]
 
         if (noQQOrders.length > 0) {
-            report.push("\n⚠️ 以下订单未能提取到QQ号：")
-            noQQOrders.forEach(order => {
+            // 创建转发消息数组
+            let forwardMsg = [{
+                name: Bot.nickname,
+                user_id: Bot.uin,
+                message: "⚠️ 以下订单未能提取到QQ号："
+            }]
+            
+            // 为每个未关联的订单创建单独的消息
+            for (const order of noQQOrders) {
+                const sponsor = sponsors.find(s => s.user.user_id === order.user_id)
                 const orderInfo = [
                     `订单金额: ${order.amount}元`,
-                    `爱发电用户: ${sponsors.find(s => s.user.user_id === order.user_id)?.user.name || '未知用户'}`,
+                    `爱发电用户: ${sponsor?.user.name || '未知用户'}`,
                     `留言内容: ${order.remark || '无留言'}`
-                ]
-                report.push(`\n${orderInfo.join('\n')}`)
+                ].join('\n')
+                
+                forwardMsg.push({
+                    name: Bot.nickname,
+                    user_id: Bot.uin,
+                    message: orderInfo
+                })
+            }
+
+            // 添加提示信息
+            forwardMsg.push({
+                name: Bot.nickname,
+                user_id: Bot.uin,
+                message: CONFIG.messages.qqNumberRequired
             })
-            report.push(`\n${CONFIG.messages.qqNumberRequired}`)
+
+            // 返回包含基础信息和转发消息的数组
+            return {
+                reportMsg: report.join('\n'),
+                forwardMsg: forwardMsg
+            }
         }
 
-        return report
+        return {
+            reportMsg: report.join('\n')
+        }
+    }
+
+    // 从API更新赞助信息
+    async refresh(e) {
+        try {
+            const [sponsorRes, orderRes] = await Promise.all([
+                fetch(`https://afdian.com/api/open/query-sponsor?${this.createSign('{"page":1,"per_page":100}')}`).then(r => r.json()),
+                fetch(`https://afdian.com/api/open/query-order?${this.createSign('{"page":1,"per_page":100}')}`).then(r => r.json())
+            ])
+
+            if (sponsorRes.ec !== 200 || orderRes.ec !== 200) {
+                return e.reply(`更新失败: ${sponsorRes.em || orderRes.em}`)
+            }
+
+            const { userQQMap, noQQOrders } = this.processOrders(orderRes.data.list)
+            const { list, stats } = this.processSponsorData(sponsorRes.data.list, userQQMap)
+            
+            if (this.saveSponsorData(list)) {
+                const report = await this.generateReport(stats, noQQOrders, sponsorRes.data.list)
+                
+                // 发送基础报告
+                await e.reply(report.reportMsg)
+                
+                // 如果有未关联订单，发送转发消息
+                if (report.forwardMsg) {
+                    // 使用Yunzai-Bot的转发消息接口
+                    await e.reply(await e.group.makeForwardMsg(report.forwardMsg))
+                }
+                
+                return true
+            }
+            return false
+        } catch (err) {
+            logger?.error?.(err)
+            return e.reply(`更新失败: ${err.message}`)
+        }
     }
 
     // 感谢赞助者
