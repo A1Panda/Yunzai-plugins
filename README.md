@@ -172,19 +172,22 @@ curl -o "./plugins/example/爱发电赞助V1.0.js" "https://raw.githubuserconten
 curl -o "./plugins/example/网页截图工具V1.0.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/网页截图工具V1.0.js"
 ```
 
-
-
 **🔒 针对禁言插件**
 ```bash
 curl -o "./plugins/example/针对禁言V0.1.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/针对禁言V0.1.js"
 ```
 
+**😇 表情合成插件**
+```bash
+curl -o "./plugins/example/表情合成.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/表情合成.js"
+```
 
 
 </td></tr>
 </table>
 
 </details>
+
 
 <details>
 <summary>📝 方式二：手动下载安装</summary>
