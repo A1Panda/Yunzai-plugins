@@ -130,7 +130,6 @@ export class Screenshot extends plugin {
             return true;
         }
 
-        e.reply("开始截图，请稍候...");
         await this.sendScreenShot(url, config.fullScreen);
         return true;
     }
@@ -263,34 +262,85 @@ export class Screenshot extends plugin {
                 'Upgrade-Insecure-Requests': '1'
             });
 
+            // 只发送一条开始提示
+            await this.e.reply("开始截图，请稍候...");
+
+            // 监听页面加载进度（改为只记录日志）
+            page.on('load', () => logger.info('[截图] DOM加载完成'));
+            
+            // 添加请求计数
+            let totalRequests = 0;
+            let completedRequests = 0;
+
+            page.on('request', () => totalRequests++);
+            page.on('requestfinished', () => {
+                completedRequests++;
+                // 只在日志中显示进度
+                if (totalRequests > 0 && completedRequests % Math.max(1, Math.floor(totalRequests / 10)) === 0) {
+                    logger.info(`[截图] 资源加载进度: ${Math.floor((completedRequests / totalRequests) * 100)}%`);
+                }
+            });
+
             // 访问页面
             logger.info(`[截图] 正在加载页面: ${link}`);
             const response = await page.goto(link, {
-                waitUntil: 'domcontentloaded',  // 改为 domcontentloaded，不等待所有资源加载完成
-                timeout: 30000
+                waitUntil: ['load', 'networkidle0'],
+                timeout: 60000
             });
 
-            if (!response || !response.ok()) {
-                throw new Error(`页面加载失败: ${response ? response.status() : 'unknown error'}`);
-            }
+            logger.info('[截图] 页面主体加载完成，正在处理图片...');
 
-            // 等待页面主要内容加载
+            // 等待页面完全渲染
             await page.evaluate(() => {
                 return new Promise((resolve) => {
-                    // 如果页面已经加载完成，直接返回
                     if (document.readyState === 'complete') {
                         resolve();
                         return;
                     }
-                    // 否则等待 load 事件
-                    window.addEventListener('load', resolve, { once: true });
-                    // 设置5秒超时
-                    setTimeout(resolve, 5000);
+                    window.addEventListener('load', resolve);
+                    setTimeout(resolve, 30000);
                 });
             });
 
-            logger.info('[截图] 页面加载完成，正在处理图片...');
-            
+            // 如果是长截图模式，添加滚动进度提示
+            if (fullPage) {
+                logger.info('[截图] 开始处理长图...');
+                
+                await page.evaluate(async () => {
+                    return new Promise((resolve) => {
+                        let lastHeight = 0;
+                        let progress = 0;
+                        const checkHeight = setInterval(() => {
+                            const scrollHeight = document.body.scrollHeight;
+                            if (lastHeight === scrollHeight) {
+                                clearInterval(checkHeight);
+                                resolve();
+                                return;
+                            }
+                            
+                            // 只在日志中显示滚动进度
+                            const currentScroll = window.pageYOffset;
+                            const newProgress = Math.floor((currentScroll / scrollHeight) * 100);
+                            if (newProgress > progress + 20) {
+                                progress = newProgress;
+                                console.info(`[截图] 滚动进度: ${progress}%`);
+                            }
+                            
+                            lastHeight = scrollHeight;
+                            window.scrollTo(0, scrollHeight);
+                        }, 100);
+                        
+                        setTimeout(() => {
+                            clearInterval(checkHeight);
+                            resolve();
+                        }, 30000);
+                    });
+                    window.scrollTo(0, 0);
+                });
+            }
+
+            await this.e.reply("内容加载完成，正在生成截图...");
+
             // 访问页面后获取实际内容宽度
             const pageWidth = await page.evaluate(() => {
                 // 获取页面内容宽度
@@ -454,6 +504,7 @@ export class Screenshot extends plugin {
             });
 
             logger.info('[截图] 截图处理完成，准备发送...');
+            await this.e.reply("截图生成完成，正在发送...");
 
             // 发送图片
             await this.e.reply(segment.image(fs.readFileSync(tempFile)));
