@@ -20,10 +20,10 @@ export class EchoEmoji extends plugin {
         
         // 提取所有表情
         const emojis = this.extractEmojis(text)
-        if (emojis.length < 2) return false // 需要至少两个表情才能合成
+        // 只处理恰好两个表情的消息
+        if (emojis.length !== 2) return false
         
         try {
-            // 获取前两个表情进行合成
             const emoji1 = emojis[0]
             const emoji2 = emojis[1]
             
