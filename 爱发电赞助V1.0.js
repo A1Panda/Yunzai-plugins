@@ -270,7 +270,7 @@ export class sponsor extends plugin {
     }
 
     // 生成更新报告
-    async generateReport(stats, noQQOrders, sponsors) {
+    async generateReport(stats, noQQOrders, sponsors, e) {
         const report = [
             "赞助信息更新完成！",
             `✓ 成功更新: ${stats.updated} 条记录`,
@@ -309,10 +309,14 @@ export class sponsor extends plugin {
                 message: CONFIG.messages.qqNumberRequired
             })
 
-            // 返回包含基础信息和转发消息的数组
+            // 根据消息来源选择不同的转发消息方法
+            const makeForwardMsg = e.isGroup 
+                ? await e.group.makeForwardMsg(forwardMsg)
+                : await e.friend.makeForwardMsg(forwardMsg)
+
             return {
                 reportMsg: report.join('\n'),
-                forwardMsg: forwardMsg
+                forwardMsg: makeForwardMsg
             }
         }
 
@@ -337,15 +341,14 @@ export class sponsor extends plugin {
             const { list, stats } = this.processSponsorData(sponsorRes.data.list, userQQMap)
             
             if (this.saveSponsorData(list)) {
-                const report = await this.generateReport(stats, noQQOrders, sponsorRes.data.list)
+                const report = await this.generateReport(stats, noQQOrders, sponsorRes.data.list, e)
                 
                 // 发送基础报告
                 await e.reply(report.reportMsg)
                 
                 // 如果有未关联订单，发送转发消息
                 if (report.forwardMsg) {
-                    // 使用Yunzai-Bot的转发消息接口
-                    await e.reply(await e.group.makeForwardMsg(report.forwardMsg))
+                    await e.reply(report.forwardMsg)
                 }
                 
                 return true
