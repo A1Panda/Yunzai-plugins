@@ -1,4 +1,8 @@
 import plugin from '../../lib/plugins/plugin.js'
+import fetch from 'node-fetch'
+import fs from 'fs'
+import path from 'path'
+import https from 'https'
 
 export class EchoEmoji extends plugin {
     constructor() {
@@ -27,24 +31,105 @@ export class EchoEmoji extends plugin {
             const emoji1 = emojis[0]
             const emoji2 = emojis[1]
             
-            // 调用新的合成API
-            const response = await fetch(`https://api.andeer.top/API/emojimix.php?emoji1=${emoji1}&emoji2=${emoji2}`)
-            const data = await response.json()
+            // 尝试直接使用Google的Emoji Kitchen API
+            // 这是一个更可靠的方法，不依赖第三方API
+            const emojiCodes = [
+                this.getEmojiUnicode(emoji1),
+                this.getEmojiUnicode(emoji2)
+            ].sort(); // 排序以确保一致性
             
-            if (data.code === 1 && data.data?.url) {
-                // 发送合成后的图片
-                await e.reply(segment.image(data.data.url))
-                return true
-            } else {
-                // 合成失败
-                await e.reply(`抱歉，${emoji1}和${emoji2}暂时无法合成哦~`)
+            // 扩展更多的表情合成库版本
+            const baseUrls = [
+                "https://www.gstatic.com/android/keyboard/emojikitchen/20201001",
+                "https://www.gstatic.com/android/keyboard/emojikitchen/20210218",
+                "https://www.gstatic.com/android/keyboard/emojikitchen/20210831",
+                "https://www.gstatic.com/android/keyboard/emojikitchen/20220110",
+                "https://www.gstatic.com/android/keyboard/emojikitchen/20220506",
+                "https://www.gstatic.com/android/keyboard/emojikitchen/20221101",
+                "https://www.gstatic.com/android/keyboard/emojikitchen/20230301",
+                "https://www.gstatic.com/android/keyboard/emojikitchen/20230803"
+            ];
+            
+            //await e.reply(`正在尝试合成 ${emoji1} 和 ${emoji2}...`);
+            
+            // 尝试所有可能的URL组合
+            for (const baseUrl of baseUrls) {
+                const possibleUrls = [
+                    `${baseUrl}/u${emojiCodes[0]}/u${emojiCodes[0]}_u${emojiCodes[1]}.png`,
+                    `${baseUrl}/u${emojiCodes[1]}/u${emojiCodes[1]}_u${emojiCodes[0]}.png`
+                ];
+                
+                for (const url of possibleUrls) {
+                    try {
+                        // 检查URL是否可访问
+                        const exists = await this.checkUrlExists(url);
+                        if (exists) {
+                            await e.reply(segment.image(url));
+                            return true;
+                        }
+                    } catch (err) {
+                        continue; // 尝试下一个URL
+                    }
+                }
             }
+            
+            // 所有方法都失败
+            await e.reply(`抱歉，无法合成 ${emoji1} 和 ${emoji2}`);
+            
         } catch (error) {
-            console.error('表情合成失败:', error.message)
-            await e.reply('抱歉，表情合成失败了，请稍后再试~')
+            await e.reply(`合成失败: ${error.message}`);
         }
         
-        return false
+        return false;
+    }
+    
+    // 获取emoji的Unicode编码
+    getEmojiUnicode(emoji) {
+        let unicode = '';
+        for (let i = 0; i < emoji.length; i++) {
+            unicode += emoji.codePointAt(i).toString(16);
+            // 跳过代理对的第二部分
+            if (emoji.codePointAt(i) > 0xFFFF) {
+                i++;
+            }
+        }
+        return unicode.toLowerCase();
+    }
+    
+    // 检查URL是否存在
+    async checkUrlExists(url) {
+        return new Promise((resolve, reject) => {
+            https.get(url, (res) => {
+                if (res.statusCode === 200) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+                res.destroy();
+            }).on('error', () => {
+                resolve(false);
+            });
+        });
+    }
+    
+    // 带超时的fetch
+    async fetchWithTimeout(url, options = {}) {
+        const { timeout = 8000 } = options;
+        
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(id);
+            return response;
+        } catch (error) {
+            clearTimeout(id);
+            throw error;
+        }
     }
 
     extractEmojis(str) {
