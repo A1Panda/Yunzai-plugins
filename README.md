@@ -137,6 +137,16 @@
 <td align="center">✅</td>
 </tr>
 
+<tr>
+<td align="center">
+<a href="https://github.com/A1Panda/Yunzai-plugins/blob/main/memeV0.1.js">🎭 meme表情包</a>
+</td>
+<td align="center">
+<img src="https://img.shields.io/badge/V0.1-blue?style=flat-square" alt="version">
+</td>
+<td>多功能表情包制作插件，支持文字/图片合成、随机生成、关键词搜索</td>
+<td align="center">✅</td>
+</tr>
 
 
 </table>
@@ -180,6 +190,11 @@ curl -o "./plugins/example/针对禁言V0.1.js" "https://raw.githubusercontent.c
 **😇 表情合成插件**
 ```bash
 curl -o "./plugins/example/表情合成.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/表情合成.js"
+```
+
+**🎭 meme表情包插件**
+```bash
+curl -o "./plugins/example/memeV0.1.js" "https://raw.githubusercontent.com/A1Panda/Yunzai-plugins/main/memeV0.1.js"
 ```
 
 
@@ -306,6 +321,40 @@ curl -o "./plugins/example/表情合成.js" "https://raw.githubusercontent.com/A
 - 可选配置表情包保存路径
 
 
+
+</details>
+
+<details>
+<summary><b>🎭 meme表情包插件 (V0.1)</b></summary>
+
+### 功能特点
+
+- 🎨 支持海量表情包模板在线制作
+- 🖼️ 支持文字与图片合成表情包
+- 🔍 关键词搜索表情包模板
+- 🎲 随机生成趣味表情包
+- 👤 支持@用户获取头像作为素材
+- 💬 支持回复消息获取图片素材
+- 🛡️ 主人保护机制（防被撅）
+- 🔄 自动每日更新表情包资源
+- 📋 表情包列表可视化展示
+
+### 使用命令
+
+| 命令 | 说明 |
+|------|------|
+| `#meme列表` | 查看所有支持的表情包模板 |
+| `#随机meme` | 随机生成一个表情包 |
+| `#meme搜索 关键词` | 搜索表情包模板 |
+| `#meme更新` | 手动更新表情包资源 |
+| `#{表情名称} 文字` | 使用指定模板生成表情包 |
+| `#{表情名称}详情` | 查看模板支持的参数 |
+
+### 配置说明
+
+- 无需特殊配置，开箱即用
+- 表情包数据来源于远程服务器，首次使用自动拉取
+- 支持自定义最大图片文件大小（默认10MB）
 
 </details>
 
